@@ -8,7 +8,7 @@ import subprocess
 
 verbose=False
 apiKey=""
-pws="KCAVOLCA3"
+pws=""
 temp=""
 delay=5*60
 #delay=30
@@ -53,7 +53,7 @@ def displayData():
     pipe.stdin.write(  " " + temp + "\n" )
 
 def main():
-    global verbose, apiKey, pipe;
+    global verbose, apiKey, pipe, pws
     apiKey=os.getenv('WUNDERGROUND_API_KEY',"")
     if (apiKey == ""):
         print "WUNDERGROUND_API_KEY doesn't exist"
@@ -61,9 +61,17 @@ def main():
     pws=os.getenv('WUNDERGROUND_PWS',"")
     if (pws == ""):
         print "WUNDERGROUND_PWS doesn't exist"
+        exit(1)
+    dcled=os.getenv('DCLED',"")
+    if (dcled == ""):
+        print "DCLED doesn't exist"
+        exit(1)
 
-    pipe = subprocess.Popen(["sudo", "/home/pi/dcled-2.2/dcled", "-rf"], stdin=subprocess.PIPE)
-    # pipe = subprocess.Popen(["cat"], stdin=subprocess.PIPE)
+    try:
+        pipe = subprocess.Popen(["sudo", dcled, "-rf"], stdin=subprocess.PIPE)
+    except:
+        print "Unexpected error:", sys.exc_info()[0]
+        exit(1)
 
     while (1):
         fetchData()
