@@ -1,0 +1,73 @@
+---
+- hosts: all
+  remote_user: pi
+  gather_facts: True
+
+  vars_files:
+  - ../station-server/config/pytemp-ansible-vars.yml
+
+
+  tasks:
+
+  - name: app directory
+    file:
+      name: /home/pi/station-server
+      state: directory
+
+  - name: app config directory
+    file:
+      name: /home/pi/station-server/config
+      state: directory
+
+  - name: app templates directory
+    file:
+      name: /home/pi/station-server/templates
+      state: directory
+
+  - name: copy py file
+    copy:
+      src: ../station-server/station-server.py
+      dest: /home/pi/station-server
+      mode: '0644'
+    notify:
+      gunicorn restart
+
+  - name: copy py requirements file
+    copy:
+      src: ../station-server/requirements.txt
+      dest: /home/pi/station-server
+      mode: '0644'
+
+  - name: Install py requirements
+    pip:
+      virtualenv_command: python3 -m venv
+      requirements: /home/pi/station-server/requirements.txt
+      virtualenv: /home/pi/venv/station-server
+    notify:
+      gunicorn restart
+
+  - name: copy py config file
+    template:
+      src: ../station-server/config/pytemp-prod.j2
+      dest: /home/pi/station-server/config/pytemp-prod.cfg
+      mode: '0600'
+    notify:
+      gunicorn restart
+
+  - name: copy py templates file
+    copy:
+      src: "{{ item }}"
+      dest: /home/pi/station-server/templates
+      mode: '0644'
+    with_fileglob:
+    - "../station-server/templates/*"
+    notify:
+      gunicorn restart
+
+  handlers:
+
+  - name: gunicorn restart
+    become: yes
+    service:
+      name: station-server
+      state: restarted

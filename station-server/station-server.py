@@ -30,7 +30,7 @@ app.config.from_envvar("PYTEMP_CONFIG")
 scheduler = APScheduler()
 
 @app.route('/stationData')
-def hello_world():
+def stationData():
     log = logging.getLogger(__name__)
     format=request.headers['Accept']
     log.debug(f"format={format}")
